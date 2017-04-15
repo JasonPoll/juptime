@@ -52,11 +52,20 @@ def message
 end
 
 def ip_addresses
-  @ip_addresses ||= `ifconfig | grep inet`.strip
+  @ip_addresses ||= `/sbin/ifconfig | grep inet`.strip
 end
 
 def uptime
-  @uptime ||= `uptime`.strip
+  @uptime ||= `/usr/bin/uptime`.strip
+end
+
+def delete_screenshots(older_than = (DateTime.now - 15).to_time)
+  Dir.entries(config['screenshot_path'])
+     .map{|f| File.expand_path(f, config['screenshot_path'])}
+     .select{|f| File.file?(f) && File.ctime(f) < older_than}
+     .each do |f|
+    File.delete(f)
+  end
 end
 
 def config
@@ -68,4 +77,7 @@ def read_config
   YAML.load(File.read(cfg_file))
 end
 
+
+
 send_screenshot_to_user()
+delete_screenshots()
